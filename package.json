@@ -1,8 +1,8 @@
 {
-  "name": "firebot-delightful-hydra",
-  "scriptOutputName": "triviaGameScript",
-  "version": "1.0.0",
-  "description": "A starter Firebot custom script",
+  "name": "firebot-trivia-game",
+  "scriptOutputName": "triviaGame",
+  "version": "0.0.1",
+  "description": "Alternate Trivia in Firebot",
   "main": "",
   "scripts": {
     "build": "webpack",
