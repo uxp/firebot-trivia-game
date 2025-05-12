@@ -16,7 +16,7 @@ jobs:
       dobuild: ${{ steps.dobuild.outputs.dobuild }}
 
     steps:
-      - name: Checkout crowbartools/firebot
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -74,14 +74,14 @@ jobs:
     if: needs.checkversion.outputs.dobuild == 1
     runs-on: ubuntu-latest
     steps:
-      - run: ls -R ./
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./bundles/
 
+      - run: ls -R ./
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
