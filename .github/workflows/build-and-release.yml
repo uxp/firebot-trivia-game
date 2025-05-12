@@ -7,7 +7,7 @@ on:
 
 jobs:
   checkversion:
-    name: Check if version has corresponding tag
+    name: Check Tags
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -37,8 +37,8 @@ jobs:
         shell: bash
         run: echo dobuild=$(git show-ref --tags --verify --quiet -- "refs/tags/v${{ steps.version.outputs.version }}" && echo 0 || echo 1) >> $GITHUB_OUTPUT
 
-  build:
-    name: 'Build'
+  buildrelease:
+    name: 'Build & Release'
     needs: [checkversion]
     if: needs.checkversion.outputs.dobuild == 1
     runs-on: ubuntu-latest
@@ -60,30 +60,13 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: 'dist'
-          path: ./dist/
-          if-no-files-found: 'error'
-
-  draft:
-    permissions: write-all
-    name: Draft Github Release
-    needs: [checkversion, build]
-    if: needs.checkversion.outputs.dobuild == 1
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./bundles/
+      - run: ls -R ./
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
           gh release create v${{ needs.checkversion.outputs.version }}
-          "./bundles/dist/${{ needs.checkversion.outputs.scriptname }}.js"
+          "./dist/${{ needs.checkversion.outputs.scriptname }}.js"
           --generate-notes
           --title "Release v${{ needs.checkversion.outputs.version }}"
