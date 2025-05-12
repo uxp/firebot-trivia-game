@@ -21,7 +21,7 @@ export class TriviaScript implements Firebot.CustomScript<ScriptParams> {
     }
 
     public run(runRequest: RunRequest<ScriptParams>): void {
-        const { logger, twitchApi, twitchChat, gameManager } = runRequest.modules
+        const { logger, gameManager } = runRequest.modules
         logger.info('Registering Trivia Game...');
 
         // register this as a global. Not sure of a better way beside passing it into every constructor.

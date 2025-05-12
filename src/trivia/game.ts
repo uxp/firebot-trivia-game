@@ -1,7 +1,8 @@
 import { FirebotGame } from '@crowbartools/firebot-custom-scripts-types/types/modules/game-manager';
 import { SettingCategoryDefinition } from '@crowbartools/firebot-custom-scripts-types/types/modules/game-manager';
-import { TriviaCommand, TriviaEntryCommand } from "./command";
+import { TriviaCommand } from "./command";
 import globals from '../globals';
+import {BasicCommandDefinition, SystemCommand } from '@crowbartools/firebot-custom-scripts-types/types/modules/command-manager';
 
 const gameSettings: Record<string, SettingCategoryDefinition> = {
     currencySettings: {
@@ -183,14 +184,12 @@ const gameSettings: Record<string, SettingCategoryDefinition> = {
                 tip: "",
             },
         }
-    }
-
+    },
 };
 
 
 export class TriviaGame {
     private readonly _ID: string = "cgjvdp:fbtrivia";
-    private readonly _ENTRY_ID: string = "cgjvdp:fbtrivia:entry";
 
     public getFirebotGame(): FirebotGame {
         return {
@@ -218,13 +217,9 @@ export class TriviaGame {
         logger.info("Registering Trivia Commands");
 
         const trivia = new TriviaCommand();
-        const entry = new TriviaEntryCommand();
 
         if (!commandManager.hasSystemCommand(this._ID)) {
             commandManager.registerSystemCommand(trivia.getTriviaCommand());
-        }
-        if (!commandManager.hasSystemCommand(this._ENTRY_ID)) {
-            commandManager.registerSystemCommand(entry.getEntryCommand());
         }
     };
 
@@ -233,7 +228,6 @@ export class TriviaGame {
         logger.info("Unregistering Trivia Commands");
 
         commandManager.unregisterSystemCommand(this._ID);
-        commandManager.unregisterSystemCommand(this._ENTRY_ID);
     };
 
     private clearCooldown() {
