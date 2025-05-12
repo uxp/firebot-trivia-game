@@ -6,7 +6,6 @@ on:
     branches: trunk
 
 jobs:
-
   checkversion:
     name: Check if version has corresponding tag
     runs-on: ubuntu-latest
@@ -69,6 +68,7 @@ jobs:
           if-no-files-found: 'error'
 
   draft:
+    permissions: write-all
     name: Draft Github Release
     needs: [checkversion, build]
     if: needs.checkversion.outputs.dobuild == 1
@@ -79,17 +79,11 @@ jobs:
         with:
           path: ./bundles/
 
-      - run: ls -R ./
       - name: Create Release
-        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          token: ${{ env.GITHUB_TOKEN }}
-          draft: true
-          prerelease: false
-          generate_release_notes: true
-          tag_name: v${{ needs.checkversion.outputs.version }}
-          name: Release v${{ needs.checkversion.outputs.version }}
-          files: |
-            ./bundles/dist/${{ needs.checkversion.outputs.scriptname }}.js
+        run: >-
+          gh release create v${{ needs.checkversion.outputs.version }}
+          "./bundles/dist/${{ needs.checkversion.outputs.scriptname }}.js"
+          --generate-notes
+          --title "Release v${{ needs.checkversion.outputs.version }}"
