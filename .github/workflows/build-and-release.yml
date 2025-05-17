@@ -62,8 +62,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - run: ls -R ./
-
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,4 +69,4 @@ jobs:
           gh release create v${{ needs.checkversion.outputs.version }}
           "./dist/${{ needs.checkversion.outputs.scriptname }}.js"
           --generate-notes
-          --title "Release v${{ needs.checkversion.outputs.version }}"
+          --title "v${{ needs.checkversion.outputs.version }}"
