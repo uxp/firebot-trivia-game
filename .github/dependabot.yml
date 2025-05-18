@@ -5,7 +5,12 @@ updates:
     schedule:
       interval: "weekly"
       day: "tuesday"
-
+    open-pull-requests-limit: 10
+    versioning-strategy: lockfile-only
+    groups:
+      dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
