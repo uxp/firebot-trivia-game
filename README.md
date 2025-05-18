@@ -10,7 +10,7 @@ inspired by the [Heist][heist] game that is included in Firebot itself.
 [firebot]: https://github.com/crowbartools/firebot
 [heist]: https://github.com/crowbartools/Firebot/tree/cff99715692feac80f9bfbb5cdd8b816a92fa371/src/backend/games/builtin/heist
 
-### Usage
+## Usage
 
 #### Download
 

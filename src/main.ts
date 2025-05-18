@@ -10,7 +10,7 @@ export class TriviaScript implements Firebot.CustomScript<ScriptParams> {
             name: "Firebot Trivia Script",
             description: "Run a game of Trivia!",
             author: "cgjvdp",
-            version: "0.0.3",
+            version: "0.0.4",
             firebotVersion: "5",
             startupOnly: true,
         };
