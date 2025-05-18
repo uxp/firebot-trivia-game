@@ -12,7 +12,7 @@ export class TriviaGame {
             id: this._ID,
             name: "Firebot Trivia",
             subtitle: "Chat based interactive trivia",
-            description: "A Trivia game rewards system. When the streamer triggers the command, users may enter their answer to the question by typing A, B, C, or D in chat. The sooner they answer correctly, they win a larger payout.",
+            description: "A Trivia game rewards system. When the streamer triggers the command, users may enter their answer to the question by the corresponding letter in chat. They win a larger payout the sooner they answer correctly!",
             icon: "fa-question-circle",
             settingCategories: {
                 currencySettings: {
@@ -291,7 +291,7 @@ export class TriviaGame {
     };
 
     private updateSettings() {
-        const { logger, commandManager } = globals.modules;
+        const { logger } = globals.modules;
         logger.info("TRIVIA: Settings updated. Resetting Trivia");
 
         this.unregisterCommand();
