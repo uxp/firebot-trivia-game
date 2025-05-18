@@ -96,8 +96,9 @@ class TriviaRunner {
         const minScore = triviaSettings.settings.gameSettings.baseMinScorePerQuestion;
         const maxScore = triviaSettings.settings.gameSettings.baseMaxScorePerQuestion;
 
-        const score = (maxScore - (parseFloat(((recordedTimestamp - this.gameStartTimestamp) / (this.roundEntryPeriod * 1000)).toPrecision(2)) * (maxScore - minScore)) * this.roundMultiplier);
-        logger.debug(`TRIVIA: min: ${minScore}; max: ${maxScore}; userScore: ${score}`);
+        const baseScore = maxScore - (parseFloat(((recordedTimestamp - this.gameStartTimestamp) / (this.roundEntryPeriod * 1000)).toPrecision(2)) * (maxScore - minScore));
+        const score = Math.round(baseScore * this.roundMultiplier);
+        logger.info(`TRIVIA: min: ${minScore}; max: ${maxScore}; baseScore: ${baseScore}; modified: ${score}`);
 
         const userGuess: UserGuess = {
             username: username,
@@ -119,12 +120,40 @@ class TriviaRunner {
         logger.info(`TRIVIA: ${userGuess.userDisplayName} guesses ${userGuess.userGuess} for ${userGuess.winnings} (${userGuess.successModifier}X)`)
     }
 
-    private reset() {
+    public async awardWinners(currencyId: string, answer: string) {
+        const { logger, gameManager, currencyDb } = globals.modules
+        const triviaSettings = gameManager.getGameSettings(this.GAME_ID);
+
+        let winnerFormatMessage: string = "";
+        if (triviaSettings.settings.gameMessages.winnersFormat) {
+            winnerFormatMessage = triviaSettings.settings.gameMessages.winnersFormat;
+        }
+
+        let retVal: string[] = [];
+        const winners = this.users.filter(e => e.userGuess === answer);
+        for (let idx = 0; idx < winners.length; idx++) {
+            const user = winners[idx];
+            const userBalance = await currencyDb.getUserCurrencyAmount(user.username, currencyId);
+            const newBalance = userBalance + user.winnings;
+            logger.info(`TRIVIA: Awarding ${user.winnings} to ${user.username} (balance: ${newBalance})`);
+            await currencyDb.adjustCurrencyForUser(user.username, currencyId, newBalance, "set");
+
+            retVal.push(winnerFormatMessage
+                .replace('{user}', user.userDisplayName)
+                .replace('{winnings}', user.winnings.toString()));
+        }
+        return retVal;
+    }
+
+    reset() {
+        const { logger } = globals.modules
+        logger.info("TRIVIA: Resetting Trivia Runner")
         this.payoutGiven = true;
         this.triviaEntriesAccepted = false;
         this.gameStartTimestamp = null;
         this.roundEntryPeriod = null;
         this.roundMultiplier = null;
+        this.users = [];
     }
 }
 

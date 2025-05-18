@@ -79,7 +79,32 @@ export class TriviaCommand {
                         hidden: true,
                         usage: `[answer] (${commandRange.map((el, idx, arr) => String.fromCharCode(idx + 65)).join(',')})`,
                         description: "Confirms the trivia Answer and awards winners.",
-                    }
+                    },
+                    {
+                        id: "reset",
+                        name: "Reset Game",
+                        active: true,
+                        trigger: null,
+                        arg: "reset",
+                        regex: false,
+                        restrictionData: {
+                            mode: "any",
+                            sendFailMessage: true,
+                            failMessage: "Unable to execute command.",
+                            restrictions: [
+                                {
+                                    id: 'sys-cmd-mods-only-perms',
+                                    type: 'firebot:permissions',
+                                    mode: "roles",
+                                    roleIds: [
+                                        "broadcaster"
+                                    ]
+                                },
+                            ]
+                        },
+                        usage: "",
+                        description: "Resets the game state.",
+                    },
                 ]
             },
             onTriggerEvent: this.onTriggerTriviaEvent,
@@ -140,7 +165,7 @@ export class TriviaCommand {
             logger.warn("TRIVIA: Trivia Settings not found", triviaSettings)
             return Promise.reject("Trivia Settings not found");
         }
-        const chatter = triviaSettings.settings.chatSettings.chatter;
+        const chatAs = triviaSettings.settings.chatSettings.chatter;
 
         // TODO: check if this is a user or the streamer.
         if (event.userCommand.senderRoles.includes('broadcaster')) {
@@ -156,7 +181,7 @@ export class TriviaCommand {
                 if (triviaSettings.settings.generalMessages.currencyNotFound) {
                     const currencyNotFound = triviaSettings.settings.generalMessages.currencyNotFound
                         .replace('{currency}', currencyId);
-                    await twitchChat.sendChatMessage(currencyNotFound, null, chatter);
+                    await twitchChat.sendChatMessage(currencyNotFound, null, chatAs);
                 }
 
                 return Promise.reject("Currency Not Found");
@@ -177,18 +202,41 @@ export class TriviaCommand {
                 }
                 // See if we're no longer accepting entries and payout needs to be awarded.
                 if (!triviaRunner.triviaEntriesAccepted && !triviaRunner.payoutGiven) {
-                    logger.error("TRIVIA: TODO: award payout")
+                    // parse correct result
+                    let answer: string;
+                    if (event.userCommand.args.length === 1) {
+                        answer = event.userCommand.args[0].trim();
+                    } else {
+                        return Promise.reject("TRIVIA: Unable to parse answer string");
+                    }
 
-                    // TODO: award payout
-                    // TODO: parse correct result
-                    // TODO: await triviaRunner.awardWinners(correctAnswer);
-                    // TODO: print winners message.
-                    return Promise.resolve();
+                    // award winners
+                    const winners = await triviaRunner.awardWinners(currencyId, answer);
+                    if (winners.length > 0) {
+                        logger.info(`TRIVIA: Printing winners message: ${winners}`);
+                        if (triviaSettings.settings.gameMessages.roundEnd) {
+                            // print winners message.
+                            const roundEndMessage = triviaSettings.settings.gameMessages.roundEnd
+                                .replace('{winners}', winners.join(','));
+                            await twitchChat.sendChatMessage(roundEndMessage, null, chatAs);
+                        }
+                    } else {
+                        logger.info(`TRIVIA: No one won!`);
+                        if (triviaSettings.settings.gameMessages.noWinners) {
+                            // print no winners
+                            const noWinnersMessage = triviaSettings.settings.gameMessages.noWinners;
+                            await twitchChat.sendChatMessage(noWinnersMessage, null, chatAs);
+                        }
+                    }
+                    return triviaRunner.reset();
                 }
 
                 return Promise.reject("No Result");
             }
 
+            if (event.userCommand.subcommandId === "reset") {
+                return triviaRunner.reset();
+            }
 
             // Process starting a new game. Subcommand can be undefined or include score modifier
             if (event.userCommand.subcommandId === "scoreModifier" || event.userCommand.subcommandId === undefined) {
@@ -200,7 +248,7 @@ export class TriviaCommand {
                         const gameStillRunning = triviaSettings.settings.generalMessages.gameStillRunning
                             .replace('{accepting}', triviaRunner.triviaEntriesAccepted)
                             .replace('{payout}', triviaRunner.payoutGiven);
-                        await twitchChat.sendChatMessage(gameStillRunning, null, chatter);
+                        await twitchChat.sendChatMessage(gameStillRunning, null, chatAs);
                     }
 
                     return Promise.reject("Unable to start.");
@@ -215,7 +263,7 @@ export class TriviaCommand {
                         if (triviaSettings.settings.generalMessages.noDefaultMultiplier) {
                             const noDefaultMultiplier = triviaSettings.settings.generalMessages.noDefaultMultiplier
                                 .replace('{multiplier}', defaultMultiplier);
-                            await twitchChat.sendChatMessage(noDefaultMultiplier, null, chatter);
+                            await twitchChat.sendChatMessage(noDefaultMultiplier, null, chatAs);
                         }
                         return Promise.reject("Multiplier less than zero");
                     }
@@ -232,7 +280,7 @@ export class TriviaCommand {
                             logger.error(`TRIVIA: Multiplier was not able to be parsed. This is probably not intended.`)
                             if (triviaSettings.settings.entryMessages.invalidMultiplier) {
                                 const invalidMultiplierMsg = triviaSettings.settings.entryMessages.invalidMultiplier;
-                                await twitchChat.sendChatMessage(invalidMultiplierMsg, null, chatter);
+                                await twitchChat.sendChatMessage(invalidMultiplierMsg, null, chatAs);
                             }
                             return Promise.reject();
                         }
@@ -241,7 +289,7 @@ export class TriviaCommand {
                         if (triviaSettings.settings.entryMessages.invalidMultiplier) {
                             const invalidMultiplierMsg = triviaSettings.settings.entryMessages.invalidMultiplier;
 
-                            await twitchChat.sendChatMessage(invalidMultiplierMsg, null, chatter);
+                            await twitchChat.sendChatMessage(invalidMultiplierMsg, null, chatAs);
                         }
                         return Promise.reject("Unparsed multiplier");
                     }
@@ -258,9 +306,8 @@ export class TriviaCommand {
                     if (triviaSettings.settings.gameMessages.roundStart) {
                         const roundStartMessage = triviaSettings.settings.gameMessages.roundStart
                             .replace('{timespan}', startDelaySeconds)
-                            .replace('{options}', triviaSettings.settings.gameMessages.choices)
                             .replace('{multiplier}', roundMultiplier);
-                        await twitchChat.sendChatMessage(roundStartMessage, null, chatter);
+                        await twitchChat.sendChatMessage(roundStartMessage, null, chatAs);
                     } else {
                         logger.warn(`TRIVIA: Unable to print roundStartMessage. Seems sus. Game started without notifying chat.`);
                     }
@@ -273,7 +320,7 @@ export class TriviaCommand {
             if (triviaSettings.settings.generalMessages.userIsNotBroadcaster) {
                 const userIsNotBroadcaster = triviaSettings.settings.generalMessages.invalidMultiplier;
 
-                await twitchChat.sendChatMessage(userIsNotBroadcaster, null, chatter);
+                await twitchChat.sendChatMessage(userIsNotBroadcaster, null, chatAs);
             }
             return Promise.reject("Command invoked by non-broadcaster.");
         }
@@ -281,13 +328,12 @@ export class TriviaCommand {
 
     private async onTriggerAnswerEvent(event: SystemCommandTriggerEvent): Promise<any> {
         const {logger, gameManager, twitchApi, twitchChat} = globals.modules;
-        logger.info("event: ", event);
 
         if (!triviaRunner.triviaEntriesAccepted) {
             logger.debug("TRIVIA: There is not a running trivia game. Bailing early");
             return Promise.resolve();
         }
-        logger.info("Processing User Entry Command.")
+        logger.info("TRIVIA: Processing User Entry Command.")
 
         const username = event.userCommand.commandSender;
         const user = await twitchApi.users.getUserByName(username);
@@ -308,10 +354,13 @@ export class TriviaCommand {
                 // See if the user has already submitted
                 if (!triviaRunner.userHasEntered(username)) {
                     logger.info(`TRIVIA: Adding user '${username}' to trivia game.`);
-                    // TODO: parse user guess
-                    // TODO: add user
-                    await triviaRunner.addUserGuess(username, user.displayName, 'A');
+                    // parse user guess..?
+                    // @ts-ignore
+                    const userGuess: string = event.chatMessage.rawText;
+                    // TODO: ensure guess is in range
 
+                    // add user's guess
+                    await triviaRunner.addUserGuess(username, user.displayName, userGuess.trim());
                 } else {
                     logger.error(`TRIVIA: Unable to add user to Trivia game. ${username} has already joined`)
 

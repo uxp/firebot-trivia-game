@@ -50,7 +50,6 @@ export class TriviaGame {
                             validation: {
                                 required: true,
                                 min: 1,
-                                max: 100,
                             }
 
                         },
@@ -65,7 +64,6 @@ export class TriviaGame {
                             validation: {
                                 required: true,
                                 min: 1,
-                                max: 100,
                             }
                         },
                         defaultMultiplier: {
@@ -92,7 +90,7 @@ export class TriviaGame {
                             showBottomHr: false,
                             validation: {
                                 required: true,
-                                min: 10,
+                                min: 20,
                                 max: 600,
                             }
                         },
@@ -109,7 +107,7 @@ export class TriviaGame {
                             description: "Sent once a round has started and entries are being accepted. (Leave empty for no message)",
                             //  @ts-ignore
                             useTextArea: true,
-                            default: "Trivia has started! You have {timespan} seconds to answer. Type {options} into chat to enter. This round's multiplier is {multiplier}.",
+                            default: "Trivia has started! You have {timespan} seconds to answer. Type A, B, C, or D into chat to enter. This round's multiplier is {multiplier}.",
                             tip: "Available variables are: {timespan}, {options}, {multiplier}.",
                             sortRank: 1
                         },
@@ -141,6 +139,15 @@ export class TriviaGame {
                             default: "The winners are: {winners}",
                             tip: "Available variables are: {winners}.",
                         },
+                        noWinners: {
+                            type: "string",
+                            title: "If there are no winners.",
+                            description: "Printed if there are no winners of the round. (Leave empty for no message)",
+                            //  @ts-ignore
+                            useTextArea: true,
+                            default: 'No one guessed correctly!',
+                            tip: "",
+                        },
                         winnersFormat: {
                             type: "string",
                             title: "Format String for Winners.",
@@ -149,15 +156,6 @@ export class TriviaGame {
                             useTextArea: true,
                             default: '{user} - ${winnings}; ',
                             tip: "Available variables are: {user}, {winnings}.",
-                        },
-                        choices: {
-                            type: "string",
-                            title: "Choices.",
-                            description: "... (Leave empty for no message)",
-                            //  @ts-ignore
-                            useTextArea: true,
-                            default: 'A, B, C, or D',
-                            tip: "",
                         },
                     }
                 },
