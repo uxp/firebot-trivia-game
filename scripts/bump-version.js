@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const { writeFileSync, readFileSync, existsSync } = require('fs');
+const { writeFileSync, readFileSync, readFile, existsSync } = require('fs');
 const {inc} = require("semver");
 
 const {Command} = require('commander');
@@ -32,7 +32,16 @@ function bump(root, type) {
     packageJson.version = newVersion;
     writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
 
-    return packageJson.version;
+    // Bump Script version with package string
+    const mainPath = path.resolve(root, "./src/main.ts");
+    if (!existsSync(mainPath)) {
+        throw new Error("Unable to locate src/main.ts");
+    }
+    const mainData = readFileSync(mainPath, "utf-8");
+    const mainFile = mainData.replace(`version: "${version}",`, `version: "${newVersion}",`);
+    writeFileSync(mainPath, mainFile);
+
+    return newVersion;
 }
 
 program
