@@ -3,7 +3,15 @@
 {
   "name": "firebot-trivia-game",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "build": {
+    "dockerfile": "Dockerfile",
+    // Update 'VARIANT' to pick a Node version: 20, 18, 16, 14.
+    // Append -bullseye or -buster to pin to an OS version.
+    // Use -bullseye variants on local on arm64/Apple Silicon.
+    "args": {
+      "VARIANT": "20-bookworm"
+    }
+  },
 
   // Path of the workspace folder inside the container. More info: https://containers.dev/implementors/json_reference/#compose-specific
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
@@ -19,7 +27,13 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+
+  // Use 'postStartCommand' to run commands after the container starts.
+  "postStartCommand": {
+    "safeDir": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    "updateIndex": "git update-index --assume-unchanged .npmrc"
+  },
 
   // Configure tool-specific properties.
   "customizations": {
