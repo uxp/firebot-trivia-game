@@ -29,7 +29,8 @@ Install to your local Firebot installation:
 In Firebot, configure `triviaGame.js` as a Startup Script.
 
 Enable the new Game under `Games` in Firebot:
-* Ensure the `currency` is set correctly.*`Game Settings` allows you to change the default behavior.
+* Ensure the `currency` is set correctly.
+* `Game Settings` allows you to change the default behavior.
 * `Message Formatting` allows you to configure the default messages.
 * `Chat Settings` allows you to configure the messaging to come from your Bot account, or Main account.
 * Finally, `General Messages` are largely error messages if the script fails to run or work correctly. These may be 

@@ -1,10 +1,19 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    cooldown:
+      default-days: 14
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "tuesday"
+    cooldown:
+      default-days: 14
     open-pull-requests-limit: 10
     versioning-strategy: lockfile-only
     groups:
@@ -15,4 +24,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "tuesday"      
+      day: "tuesday"
+    cooldown:
+      default-days: 7
